@@ -14,8 +14,8 @@ object Utils {
     readFileByLine(inputPath).map(_.toInt)
   }
 
-  def splitAt(list: List[String], char: String): List[List[String]] = {
-    list.foldLeft[List[List[String]]](List())((acc, curr) => {
+  def splitAt[ElementType](list: List[ElementType], char: ElementType): List[List[ElementType]] = {
+    list.foldRight[List[List[ElementType]]](Nil)((curr, acc) => {
       if (curr == char) {
         List() :: acc
       } else {
