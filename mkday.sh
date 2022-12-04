@@ -23,8 +23,8 @@ object Main extends App {
     1
   }
 
-  println("[Part1]:", run1(readFileByLine("day$DAY-input.txt")))
-  println("[Part2]:", run2(readFileByLine("day$DAY-input.txt")))
+  println("[Part1]:", run1(readFileByLine("day$DAY-test01.txt")))
+  println("[Part2]:", run2(readFileByLine("day$DAY-test01.txt")))
 }
 EOM
 
