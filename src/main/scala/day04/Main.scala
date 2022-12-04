@@ -27,7 +27,7 @@ object Main extends App {
   def run2(input: List[String]): Int = {
     pairsOfSections(input).count(pair => {
       val (first, second) = pair
-      first.exists(second.contains) || second.exists(first.contains)
+      (first & second).nonEmpty
     })
   }
 
