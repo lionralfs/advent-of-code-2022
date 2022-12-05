@@ -28,7 +28,7 @@ object Main extends App {
     })
   }
 
-  def run1(input: List[String]): String = {
+  private def run(input: List[String], modifier: List[String] => List[String]): String = {
     val parts = splitAt(input, "")
     val stacks = parseStacks(parts.head)
 
@@ -36,33 +36,7 @@ object Main extends App {
 
     val resultState = instructions.foldLeft(stacks)((state, instruction) => {
       val stackFrom = state.find(_.name == instruction.from.toString).get
-      val toMove = stackFrom.items.take(instruction.move)
-      val remaining = stackFrom.items.drop(instruction.move)
-      val modifiedFrom = stackFrom.copy(items = remaining)
-
-      val stackTo = state.find(_.name == instruction.to.toString).get
-
-      state.map(stack => {
-        stack.name match {
-          case stackFrom.name => modifiedFrom
-          case stackTo.name => stack.copy(items = toMove.reverse ++ stack.items)
-          case _ => stack
-        }
-      })
-    })
-
-    resultState.map(_.items.head).mkString
-  }
-
-  def run2(input: List[String]): String = {
-    val parts = splitAt(input, "")
-    val stacks = parseStacks(parts.head)
-
-    val instructions = parseInstructions(parts.last)
-
-    val resultState = instructions.foldLeft(stacks)((state, instruction) => {
-      val stackFrom = state.find(_.name == instruction.from.toString).get
-      val toMove = stackFrom.items.take(instruction.move)
+      val toMove = modifier(stackFrom.items.take(instruction.move))
       val remaining = stackFrom.items.drop(instruction.move)
       val modifiedFrom = stackFrom.copy(items = remaining)
 
@@ -79,6 +53,10 @@ object Main extends App {
 
     resultState.map(_.items.head).mkString
   }
+
+  def run1(input: List[String]): String = run(input, _.reverse)
+
+  def run2(input: List[String]): String = run(input, identity)
 
   println("[Part1]:", run1(readFileByLine("day05-input.txt")))
   println("[Part2]:", run2(readFileByLine("day05-input.txt")))
