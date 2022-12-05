@@ -14,13 +14,13 @@ object Utils {
     readFileByLine(inputPath).map(_.toInt)
   }
 
-  def splitAt[ElementType](list: List[ElementType], char: ElementType): List[List[ElementType]] = {
+  def splitAt[ElementType](list: List[ElementType], separator: ElementType): List[List[ElementType]] = {
     list.foldRight[List[List[ElementType]]](Nil)((curr, acc) => {
-      if (curr == char) {
+      if (curr == separator) {
         List() :: acc
       } else {
         acc match {
-          case head :: tail => head.appended(curr) :: tail
+          case head :: tail => (curr :: head) :: tail
           case _ => List(List(curr))
         }
       }

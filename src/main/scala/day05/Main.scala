@@ -8,7 +8,7 @@ object Main extends App {
   case class Stack(name: String, items: List[String])
 
   def parseStacks(inputLines: List[String]): List[Stack] = {
-    val lines = inputLines.reverse.map(_.grouped(4).toList).map(_.map(str => str.replace("[", "").replace("]", "").trim))
+    val lines = inputLines.map(_.grouped(4).toList).map(_.map(str => str.replace("[", "").replace("]", "").trim))
     val stackNames = lines.last
     val stackCount = stackNames.length
     val zeroFilled = lines.dropRight(1).map(list => list ++ List.fill(stackCount - list.length)(""))
@@ -34,7 +34,7 @@ object Main extends App {
 
     val instructions = parseInstructions(parts.last)
 
-    val resultState = instructions.foldRight(stacks)((instruction, state) => {
+    val resultState = instructions.foldLeft(stacks)((state, instruction) => {
       val stackFrom = state.find(_.name == instruction.from.toString).get
       val toMove = stackFrom.items.take(instruction.move)
       val remaining = stackFrom.items.drop(instruction.move)
@@ -60,7 +60,7 @@ object Main extends App {
 
     val instructions = parseInstructions(parts.last)
 
-    val resultState = instructions.foldRight(stacks)((instruction, state) => {
+    val resultState = instructions.foldLeft(stacks)((state, instruction) => {
       val stackFrom = state.find(_.name == instruction.from.toString).get
       val toMove = stackFrom.items.take(instruction.move)
       val remaining = stackFrom.items.drop(instruction.move)
