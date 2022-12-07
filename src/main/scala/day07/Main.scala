@@ -5,7 +5,21 @@ import utils.Utils._
 object Main extends App {
   case class File(name: String, size: Int)
 
-  case class Directory(var parent: Option[Directory], var directories: List[Directory], var files: List[File], name: String)
+  case class Directory(var parent: Option[Directory], var directories: List[Directory], var files: List[File], name: String) {
+    private def print(level: Int = 1): String = {
+      val base = s"- $name (dir)"
+
+      val filesStr = files.map(file => " ".repeat(level * 2 + 1) + s"- ${file.name} (file, size=${file.size})").mkString("\n")
+      val subDirs = directories.map(dir => " ".repeat(level * 2) + dir.print(level + 1))
+      if (subDirs.nonEmpty) {
+        base + "\n" + subDirs.mkString("\n") + "\n" + filesStr
+      } else {
+        base + "\n" + filesStr
+      }
+    }
+
+    override def toString: String = print()
+  }
 
   def run1(input: List[String]): Int = {
     val cdPattern = "\\$ cd (.+)".r
@@ -23,7 +37,6 @@ object Main extends App {
         } else {
           currentDir = currentDir.directories.find(_.name == dir).get
         }
-      case "$ ls" => ""
       case dirOutputPattern(dir) =>
         if (!currentDir.directories.exists(_.name == dir)) {
           val newDir = Directory(parent = Some(currentDir), directories = Nil, files = Nil, name = dir)
@@ -32,6 +45,7 @@ object Main extends App {
       case fileOutputPattern(size, name) =>
         val newFile = File(name = name, size = size.toInt)
         currentDir.files = currentDir.files.appended(newFile)
+      case _ =>
     }
 
     // walk to root
@@ -70,7 +84,6 @@ object Main extends App {
         } else {
           currentDir = currentDir.directories.find(_.name == dir).get
         }
-      case "$ ls" => ""
       case dirOutputPattern(dir) =>
         if (!currentDir.directories.exists(_.name == dir)) {
           val newDir = Directory(parent = Some(currentDir), directories = Nil, files = Nil, name = dir)
@@ -79,6 +92,7 @@ object Main extends App {
       case fileOutputPattern(size, name) =>
         val newFile = File(name = name, size = size.toInt)
         currentDir.files = currentDir.files.appended(newFile)
+      case _ =>
     }
 
     // walk to root
