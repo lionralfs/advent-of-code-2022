@@ -55,9 +55,9 @@ object Main extends App {
   }
 
 
-  private def findPath(field: List[List[Int]], start: (Int, Int)): Int = {
-    val todo = mutable.Queue((start, 0))
-    val seen = mutable.Set[(Int, Int)](start)
+  private def findPath(field: List[List[Int]], starts: List[(Int, Int)]): Int = {
+    val todo = mutable.Queue.from(starts.map((_, 0)))
+    val seen = mutable.Set.from(starts)
 
     while (todo.nonEmpty) {
       val (next, distanceSoFar) = todo.dequeue()
@@ -82,7 +82,7 @@ object Main extends App {
 
   def run1(input: List[String]): Int = {
     val (field, start) = parse(input)
-    findPath(field, start)
+    findPath(field, List(start))
   }
 
   def run2(input: List[String]): Int = {
@@ -98,7 +98,7 @@ object Main extends App {
       acc.concat(r)
     })
 
-    (start :: as).map(findPath(field, _)).min
+    findPath(field, start :: as)
   }
 
   println("[Part1]:", run1(readFileByLine("day12-input.txt")))
