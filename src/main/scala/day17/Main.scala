@@ -5,6 +5,14 @@ import utils.Utils._
 import scala.collection.mutable
 
 object Main extends App {
+  private lazy val shapes = List(
+    Shape(points = List((0, 0), (1, 0), (2, 0), (3, 0))), // --
+    Shape(points = List((1, 0), (0, 1), (1, 1), (2, 1), (1, 2))), // +
+    Shape(points = List((0, 0), (1, 0), (2, 0), (2, 1), (2, 2))), // _|
+    Shape(points = List((0, 0), (0, 1), (0, 2), (0, 3))), // |
+    Shape(points = List((0, 0), (1, 0), (0, 1), (1, 1))), // o
+  )
+
   case class Shape(points: List[(Int, Int)])
 
   case class Chamber(placedBlocks: mutable.Set[(Int, Int)] = mutable.Set.empty) {
@@ -41,14 +49,6 @@ object Main extends App {
   def run1(input: List[String]): Int = {
     val moves = input.head.split("").toList
 
-    val shapes = List(
-      Shape(points = List((0, 0), (1, 0), (2, 0), (3, 0))), // --
-      Shape(points = List((1, 0), (0, 1), (1, 1), (2, 1), (1, 2))), // +
-      Shape(points = List((0, 0), (1, 0), (2, 0), (2, 1), (2, 2))), // _|
-      Shape(points = List((0, 0), (0, 1), (0, 2), (0, 3))), // |
-      Shape(points = List((0, 0), (1, 0), (0, 1), (1, 1))), // o
-    )
-
     val chamber = Chamber()
     var jetIndex = 0
 
@@ -81,20 +81,77 @@ object Main extends App {
       }
     }
 
-    var blockI = 0L
-    while (blockI < 2022L) {
-      val shapeToPlace = shapes((blockI % shapes.length).toInt)
+    var blockIndex = 0L
+    while (blockIndex < 2022L) {
+      val shapeToPlace = shapes((blockIndex % shapes.length).toInt)
       placeNextBlock(shapeToPlace)
-      blockI += 1
+      blockIndex += 1
     }
 
     chamber.maxHeight
   }
 
   def run2(input: List[String]): Int = {
-    1
+    val moves = input.head.split("").toList
+
+    val chamber = Chamber()
+    var jetIndex = 0
+
+    def placeNextBlock(shape: Shape): Set[(Int, Int)] = {
+      val maxHeight = chamber.maxHeight
+      var position = shape.points.map({ case (x, y) => (x + 2, y + maxHeight + 4) }).toSet
+
+      while (true) {
+        val jetDirection = moves(jetIndex)
+        jetIndex = (jetIndex + 1) % moves.length
+        jetDirection match {
+          case ">" =>
+            val newPos = position.map({ case (x, y) => (x + 1, y) })
+            if (newPos.forall({ case (x, y) => x < 7 && !chamber.placedBlocks.contains((x, y)) })) {
+              position = newPos
+            }
+          case "<" =>
+            val newPos = position.map({ case (x, y) => (x - 1, y) })
+            if (newPos.forall({ case (x, y) => x >= 0 && !chamber.placedBlocks.contains((x, y)) })) {
+              position = newPos
+            }
+        }
+        chamber.positionAfterFall(position) match {
+          case Some(pos) =>
+            position = pos
+          case None =>
+            chamber.addBlock(position)
+            return position
+        }
+      }
+
+      Set.empty
+    }
+
+    var blockCounter = 0L
+    val history = mutable.Map.empty[(Int, Int, Set[Int]), (Int, Long)]
+    while (blockCounter < 1000000000) {
+      val heightBeforePlacing = chamber.maxHeight
+      val blockIndex = (blockCounter % shapes.length).toInt
+      val shapeToPlace = shapes(blockIndex)
+      val newPos = placeNextBlock(shapeToPlace)
+      assert(newPos.nonEmpty)
+      val xCoordinates = newPos.map({ case (x, _) => x })
+      val historyKey = (blockIndex, jetIndex, xCoordinates)
+      if (history.contains(historyKey)) {
+        val (previousStateHeight, blocksPlaced) = history(historyKey)
+        val loopHeight = heightBeforePlacing - previousStateHeight
+        val loopBlockCount = blockCounter - blocksPlaced
+        println(s"found a loop of height $loopHeight, which is $loopBlockCount blocks, starting at $previousStateHeight")
+        return 0
+      }
+      history.update(historyKey, (chamber.maxHeight, blockCounter))
+      blockCounter += 1
+    }
+
+    chamber.maxHeight
   }
 
-  println("[Part1]:", run1(readFileByLine("day17-input.txt")))
-  //  println("[Part2]:", run2(readFileByLine("day17-test01.txt")))
+  //  println("[Part1]:", run1(readFileByLine("day17-input.txt")))
+  println("[Part2]:", run2(readFileByLine("day17-test01.txt")))
 }
