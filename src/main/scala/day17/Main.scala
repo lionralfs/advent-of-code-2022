@@ -91,13 +91,12 @@ object Main extends App {
     chamber.maxHeight
   }
 
-  def run2(input: List[String]): Int = {
+  def run2(input: List[String]): Long = {
     val moves = input.head.split("").toList
 
-    val chamber = Chamber()
     var jetIndex = 0
 
-    def placeNextBlock(shape: Shape): Set[(Int, Int)] = {
+    def placeNextBlock(chamber: Chamber, shape: Shape): Set[(Int, Int)] = {
       val maxHeight = chamber.maxHeight
       var position = shape.points.map({ case (x, y) => (x + 2, y + maxHeight + 4) }).toSet
 
@@ -128,30 +127,55 @@ object Main extends App {
       Set.empty
     }
 
+    // I solved it by hand by manually finding the loop and then doing some math:
+    //    240 blocks before loop
+    //    loop has height 2681
+    //    loop has 1980 - 240 = 1740 blocks
+    //
+    //    1000000000000 = 574712643 * 1740 + 1180
+    //    574712643 loops are required, and 1180 steps beginning + end
+    //
+    //    1180 blocks = 1799 height
+    //    total height = 1799 + (574712643 * 2681) = 1540804597682
+
     var blockCounter = 0L
     val history = mutable.Map.empty[(Int, Int, Set[Int]), (Int, Long)]
-    while (blockCounter < 1000000000) {
+    val chamber = Chamber()
+    while (true) {
       val heightBeforePlacing = chamber.maxHeight
       val blockIndex = (blockCounter % shapes.length).toInt
       val shapeToPlace = shapes(blockIndex)
-      val newPos = placeNextBlock(shapeToPlace)
+      val jetIndexBefore = jetIndex
+      val newPos = placeNextBlock(chamber, shapeToPlace)
       assert(newPos.nonEmpty)
       val xCoordinates = newPos.map({ case (x, _) => x })
       val historyKey = (blockIndex, jetIndex, xCoordinates)
-      if (history.contains(historyKey)) {
-        val (previousStateHeight, blocksPlaced) = history(historyKey)
-        val loopHeight = heightBeforePlacing - previousStateHeight
-        val loopBlockCount = blockCounter - blocksPlaced
-        println(s"found a loop of height $loopHeight, which is $loopBlockCount blocks, starting at $previousStateHeight")
-        return 0
+      if (history.contains(historyKey)) { // FIXME: apparently, this check alone is not enough to find the loop
+        val (heightBeforeLoopStarts, blocksBeforeLoopStarts) = history(historyKey)
+        val loopHeight = heightBeforePlacing - heightBeforeLoopStarts
+        val loopBlockCount = blockCounter - blocksBeforeLoopStarts
+        println(s"loop starts at height $heightBeforeLoopStarts and has height: $loopHeight")
+        val blocksRemaining = 1000000000000L - blocksBeforeLoopStarts
+        val loops = blocksRemaining / loopBlockCount
+        val remainingAfterLoops = 1000000000000L - ((loopBlockCount * loops) + blocksBeforeLoopStarts)
+        val newChamber = Chamber()
+        jetIndex = jetIndexBefore
+        for (_ <- 1 to remainingAfterLoops.toInt) {
+          val blockIndex = (blockCounter % shapes.length).toInt
+          val shapeToPlace = shapes(blockIndex)
+          placeNextBlock(newChamber, shapeToPlace)
+          blockCounter += 1
+        }
+        // FIXME: just simulate the start + the end in one go
+        return heightBeforeLoopStarts + (loops * loopHeight) + newChamber.maxHeight
       }
-      history.update(historyKey, (chamber.maxHeight, blockCounter))
+      history.update(historyKey, (heightBeforePlacing, blockCounter))
       blockCounter += 1
     }
 
     chamber.maxHeight
   }
 
-  //  println("[Part1]:", run1(readFileByLine("day17-input.txt")))
-  println("[Part2]:", run2(readFileByLine("day17-test01.txt")))
+  println("[Part1]:", run1(readFileByLine("day17-input.txt")))
+  //  println("[Part2]:", run2(readFileByLine("day17-input.txt")))
 }
