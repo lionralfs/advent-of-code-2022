@@ -50,10 +50,13 @@ object Main extends App {
         return maxSoFar
       }
 
-      val doNothing = (ore + oreRobots, clay + clayRobots, obsidian + obsidianRobots, geode + geodeRobots, oreRobots, clayRobots, obsidianRobots, geodeRobots, minutesRemaining - 1)
-      val nextStates = mutable.ListBuffer[(Int, Int, Int, Int, Int, Int, Int, Int, Int)](doNothing)
-
+      val nextStates = mutable.ListBuffer.empty[(Int, Int, Int, Int, Int, Int, Int, Int, Int)]
       var canMakeGeodeRobot = false
+
+      if (!canMakeGeodeRobot) {
+        val doNothing = (ore + oreRobots, clay + clayRobots, obsidian + obsidianRobots, geode + geodeRobots, oreRobots, clayRobots, obsidianRobots, geodeRobots, minutesRemaining - 1)
+        nextStates.append(doNothing)
+      }
 
       if (ore - blueprint.geodeRobotOreCost >= 0 && obsidian - blueprint.geodeRobotObsidianCost >= 0) {
         canMakeGeodeRobot = true
@@ -71,6 +74,8 @@ object Main extends App {
       if (!canMakeGeodeRobot && ore - blueprint.obsidianRobotOreCost >= 0 && clay - blueprint.obsidianRobotClayCost >= 0 && obsidianRobots < blueprint.geodeRobotObsidianCost) {
         nextStates.append((ore - blueprint.obsidianRobotOreCost + oreRobots, clay - blueprint.obsidianRobotClayCost + clayRobots, obsidian + obsidianRobots, geode + geodeRobots, oreRobots, clayRobots, obsidianRobots + 1, geodeRobots, minutesRemaining - 1))
       }
+
+      // TODO: "fast-forward" each next move the minute where an action can occur
 
       val max = nextStates.foldLeft(maxSoFar)({ (acc, nextState) => {
         val maxNext = findMax(blueprint, nextState, acc)
