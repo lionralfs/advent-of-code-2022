@@ -16,10 +16,10 @@ class Day20Spec extends AnyFlatSpec with Matchers {
   }
 
   "Part 2" should "calculate the test input" in {
-    run2(Utils.readFileByLine("day20-test01.txt")) shouldEqual 0
+    run2(Utils.readFileByLine("day20-test01.txt")) shouldEqual 1623178306L
   }
 
   it should "calculate the real input" in {
-    run2(Utils.readFileByLine("day20-input.txt")) shouldEqual 0
+    run2(Utils.readFileByLine("day20-input.txt")) shouldEqual 11102539613040L
   }
 }
