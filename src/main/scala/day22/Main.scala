@@ -43,7 +43,7 @@ object Main extends App {
     (map, parseInstructions(instructions.head))
   }
 
-  private def walkRight(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char]): (Int, Int) = {
+  private def walkRight(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char], currentDirection: Direction, isPart2: Boolean): ((Int, Int), Direction) = {
     var stepsRemaining = steps
     val (posX, posY) = currentPosition
     var currentX = posX
@@ -55,22 +55,22 @@ object Main extends App {
         if (nextElement == '.') {
           currentX = nextX
         } else if (nextElement == '#') {
-          return (currentX, posY)
+          return ((currentX, posY), currentDirection)
         }
       } else {
         val (nextPosition, nextElement) = map.filter({ case ((_, y), _) => y == posY }).minBy({ case ((x, _), _) => x })
         if (nextElement != '.') {
-          return (currentX, posY)
+          return ((currentX, posY), currentDirection)
         } else {
           currentX = nextPosition._1
         }
       }
       stepsRemaining -= 1
     }
-    (currentX, posY)
+    ((currentX, posY), currentDirection)
   }
 
-  private def walkLeft(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char]): (Int, Int) = {
+  private def walkLeft(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char], currentDirection: Direction, isPart2: Boolean): ((Int, Int), Direction) = {
     var stepsRemaining = steps
     val (posX, posY) = currentPosition
     var currentX = posX
@@ -82,22 +82,22 @@ object Main extends App {
         if (nextElement == '.') {
           currentX = nextX
         } else if (nextElement == '#') {
-          return (currentX, posY)
+          return ((currentX, posY), currentDirection)
         }
       } else {
         val (nextPosition, nextElement) = map.filter({ case ((_, y), _) => y == posY }).maxBy({ case ((x, _), _) => x })
         if (nextElement != '.') {
-          return (currentX, posY)
+          return ((currentX, posY), currentDirection)
         } else {
           currentX = nextPosition._1
         }
       }
       stepsRemaining -= 1
     }
-    (currentX, posY)
+    ((currentX, posY), currentDirection)
   }
 
-  private def walkDown(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char]): (Int, Int) = {
+  private def walkDown(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char], currentDirection: Direction, isPart2: Boolean): ((Int, Int), Direction) = {
     var stepsRemaining = steps
     val (posX, posY) = currentPosition
     var currentY = posY
@@ -109,22 +109,22 @@ object Main extends App {
         if (nextElement == '.') {
           currentY = nextY
         } else if (nextElement == '#') {
-          return (posX, currentY)
+          return ((posX, currentY), currentDirection)
         }
       } else {
         val (nextPosition, nextElement) = map.filter({ case ((x, _), _) => x == posX }).minBy({ case ((_, y), _) => y })
         if (nextElement != '.') {
-          return (posX, currentY)
+          return ((posX, currentY), currentDirection)
         } else {
           currentY = nextPosition._2
         }
       }
       stepsRemaining -= 1
     }
-    (posX, currentY)
+    ((posX, currentY), currentDirection)
   }
 
-  private def walkUp(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char]): (Int, Int) = {
+  private def walkUp(steps: Int, currentPosition: (Int, Int), map: Map[(Int, Int), Char], currentDirection: Direction, isPart2: Boolean): ((Int, Int), Direction) = {
     var stepsRemaining = steps
     val (posX, posY) = currentPosition
     var currentY = posY
@@ -136,22 +136,22 @@ object Main extends App {
         if (nextElement == '.') {
           currentY = nextY
         } else if (nextElement == '#') {
-          return (posX, currentY)
+          return ((posX, currentY), currentDirection)
         }
       } else {
         val (nextPosition, nextElement) = map.filter({ case ((x, _), _) => x == posX }).maxBy({ case ((_, y), _) => y })
         if (nextElement != '.') {
-          return (posX, currentY)
+          return ((posX, currentY), currentDirection)
         } else {
           currentY = nextPosition._2
         }
       }
       stepsRemaining -= 1
     }
-    (posX, currentY)
+    ((posX, currentY), currentDirection)
   }
 
-  def run1(input: List[String]): Int = {
+  private def calc(input: List[String], isPart2: Boolean): Int = {
     val (map, instructions) = parse(input)
     val startingPositionX = map.keys.filter(_._2 == 0).map(_._1).min
     val startingPosition = (startingPositionX, 0)
@@ -174,10 +174,10 @@ object Main extends App {
         }
         (currentPosition, newDirection)
       case Walk(steps) => currentDirection match {
-        case Right => (walkRight(steps, currentPosition, map), currentDirection)
-        case Left => (walkLeft(steps, currentPosition, map), currentDirection)
-        case Down => (walkDown(steps, currentPosition, map), currentDirection)
-        case Up => (walkUp(steps, currentPosition, map), currentDirection)
+        case Right => walkRight(steps, currentPosition, map, currentDirection, isPart2)
+        case Left => walkLeft(steps, currentPosition, map, currentDirection, isPart2)
+        case Down => walkDown(steps, currentPosition, map, currentDirection, isPart2)
+        case Up => walkUp(steps, currentPosition, map, currentDirection, isPart2)
       }
     }
     })
@@ -194,9 +194,9 @@ object Main extends App {
     1000 * (y + 1) + 4 * (x + 1) + directionValue
   }
 
-  def run2(input: List[String]): Int = {
-    1
-  }
+  def run1(input: List[String]): Int = calc(input, isPart2 = false)
+
+  def run2(input: List[String]): Int = calc(input, isPart2 = true)
 
   println("[Part1]:", run1(readFileByLine("day22-input.txt")))
   //  println("[Part2]:", run2(readFileByLine("day22-test01.txt")))
