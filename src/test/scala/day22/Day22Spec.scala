@@ -18,8 +18,8 @@ class Day22Spec extends AnyFlatSpec with Matchers {
 //  "Part 2" should "calculate the test input" in {
 //    run2(Utils.readFileByLine("day22-test01.txt")) shouldEqual ???
 //  }
-//
-//  it should "calculate the real input" in {
-//    run2(Utils.readFileByLine("day22-input.txt")) shouldEqual ???
-//  }
+
+  "Part 2" should "calculate the real input" in {
+    run2(Utils.readFileByLine("day22-input.txt")) shouldEqual 197047
+  }
 }
